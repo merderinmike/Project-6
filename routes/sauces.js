@@ -4,3 +4,22 @@
 // PUT /api/sauces/:id request body: {EITHERSauce as JSON OR { sauce:String, image: File }} response: {message: string}
 // DELETE /api/sauces/:id request body: {}, response  {message: string}
 // POST /api/sauces/:id/like request body: { userId: string, like: number}, response {message: string}
+
+const express = require("express");
+const router = express.Router();
+
+const saucesController = require("../controllers/sauces");
+
+router.get("/api/sauces");
+
+router.get("/api/sauces/:id");
+
+router.post("/api/sauces");
+
+router.put("/api/sauces/:id");
+
+router.delete("/api/sauces/:id");
+
+router.post("/api/sauces/:id/like");
+
+module.exports = router;
