@@ -4,4 +4,4 @@
 // PUT /api/sauces/:id request body: {EITHERSauce as JSON OR { sauce:String, image: File }} response: {message: string}
 // DELETE /api/sauces/:id request body: {}, response  {message: string}
 // POST /api/sauces/:id/like request body: { userId: string, like: number}, response {message: string}
-const Sauces = require("../models/sauces");
+// const Sauces = require("../models/sauces");

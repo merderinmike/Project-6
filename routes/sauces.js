@@ -10,16 +10,18 @@ const router = express.Router();
 
 const saucesController = require("../controllers/sauces");
 
-router.get("/api/sauces");
+router.get("/");
 
-router.get("/api/sauces/:id");
+router.get("/:id", (req, res) => {
+	console.log(req.params);
+});
 
-router.post("/api/sauces");
+router.post("/");
 
-router.put("/api/sauces/:id");
+router.put("/:id");
 
-router.delete("/api/sauces/:id");
+router.delete("/:id");
 
-router.post("/api/sauces/:id/like");
+router.post("/:id/like");
 
 module.exports = router;
