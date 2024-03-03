@@ -30,7 +30,7 @@ const saucesSchema = new mongoose.Schema({
 		required: true,
 	},
 	likes: {
-		type: "String",
+		type: "Number",
 		required: true,
 	},
 	dislikes: {

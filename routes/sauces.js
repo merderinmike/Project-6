@@ -7,21 +7,27 @@
 
 const express = require("express");
 const router = express.Router();
-
+const authenticate = require("../middleware/authToken");
 const saucesController = require("../controllers/sauces");
 
-router.get("/");
+router.get("/", authenticate.authenticateToken, saucesController.getSauces);
 
-router.get("/:id", (req, res) => {
-	console.log(req.params);
-});
+router.get(
+	"/:id",
+	authenticate.authenticateToken,
+	saucesController.getOneSauce
+);
 
 router.post("/");
 
 router.put("/:id");
 
-router.delete("/:id");
+router.delete(
+	"/:id",
+	authenticate.authenticateToken,
+	saucesController.deleteSauce
+);
 
-router.post("/:id/like");
+router.post("/:id/like", saucesController.likeSauce);
 
 module.exports = router;
