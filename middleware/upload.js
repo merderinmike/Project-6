@@ -4,6 +4,7 @@ const { GridFsStorage } = require("multer-gridfs-storage");
 require("dotenv").config();
 
 function upload() {
+	console.log("upload running");
 	const mongoUrl = process.env.MONGOSTRING;
 	const storage = new GridFsStorage({
 		url: mongoUrl,

@@ -57,29 +57,61 @@ exports.deleteSauce = async (req, res) => {
 
 exports.likeSauce = async (req, res) => {
 	try {
-		const id = req.params.id;
-		const userId = req.user.id;
+		const { id } = req.params;
+		const userId = req.userId;
+		const like = Number(req.params.like);
 		const sauce = await Sauces.findById(id);
 
 		if (!sauce) {
-			return res.status(400).json({ message: "Sauce not found " });
-		}
-		// Checks if user has already liked the sauce
-		if (sauce.usersLiked.includes(userId)) {
-			return res
-				.status(400)
-				.json({ message: "User has already liked this suace." });
+			return res.status(404).json({ message: "Sauce not found" });
 		}
 
-		sauce.usersLiked.push(userId);
-		sauce.likes += 1;
+		let message = "Sauce liked successfully";
+
+		if (like === 1) {
+			if (!sauce.usersLiked.includes(userId)) {
+				sauce.usersLiked.push(userId);
+				sauce.likes = sauce.usersLiked.length;
+			} else {
+				return res
+					.status(400)
+					.json({ message: "User has already liked this sauce." });
+			}
+		} else if (like === 0) {
+			let updated = false;
+			if (sauce.usersLiked.includes(userId)) {
+				sauce.usersLiked = sauce.usersLiked.filter(
+					(user) => user !== userId
+				);
+				sauce.likes = sauce.usersLiked.length;
+				message = "Like removed successfully";
+				updated = true;
+			}
+			if (sauce.usersDisliked.includes(userId)) {
+				sauce.usersDisliked = sauce.usersDisliked.filter(
+					(user) => user !== userId
+				);
+				sauce.dislikes = sauce.usersDisliked.length;
+				message = updated
+					? "Like and dislike removed successfully"
+					: "Dislike removed successfully";
+			}
+		} else if (like === -1) {
+			if (!sauce.usersDisliked.includes(userId)) {
+				sauce.usersDisliked.push(userId);
+				sauce.dislikes = sauce.usersDisliked.length;
+			} else {
+				return res
+					.status(400)
+					.json({ message: "User has already disliked this sauce." });
+			}
+		} else {
+			return res.status(400).json({ message: "Invalid like value" });
+		}
 
 		await sauce.save();
-
-		res.json({ message: "Sauce liked successfully" });
+		res.json({ message });
 	} catch (error) {
-		return res
-			.status(500)
-			.json({ message: "Server error", error: error.message });
+		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };

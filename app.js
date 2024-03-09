@@ -5,7 +5,7 @@ const mongoConnect = require("./utils/db");
 const sauceRoute = require("./routes/sauces");
 const authLogin = require("./routes/auth.login");
 const authSignup = require("./routes/auth.signup");
-
+const fileUpload = require("./routes/imgUpload");
 require("dotenv").config();
 
 const app = express();
@@ -24,6 +24,7 @@ mongoConnect();
 app.use(express.json());
 app.use(cors());
 
+app.use("/api/", fileUpload);
 app.use("/api/sauces", sauceRoute);
 app.use("/api/auth/login", authLogin);
 app.use("/api/auth/signUp", authSignup);
