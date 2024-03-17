@@ -1,4 +1,5 @@
 const express = require("express");
+const bodyParser = require("body-parser");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const mongoConnect = require("./utils/db");
@@ -13,18 +14,19 @@ const PORT = process.env.PORT || 3000;
 
 mongoConnect();
 
-(() => {
-	mongoose.connection.on("connected", () => {
-		new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-			bucketName: "filesBucket",
-		});
+let gfs;
+mongoose.connection.once("open", () => {
+	gfs = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+		bucketName: "uploads",
 	});
-})();
+});
 
 app.use(express.json());
 app.use(cors());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-app.use("/api/", fileUpload);
+app.use("/api/file", fileUpload);
 app.use("/api/sauces", sauceRoute);
 app.use("/api/auth/login", authLogin);
 app.use("/api/auth/signUp", authSignup);

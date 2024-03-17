@@ -1,5 +1,3 @@
-// GET /api/sauces response: {array of sauces}
-// GET /api/sauces/:id response: {Single sauce}
 // POST /api/sauces request body: {sauce: string, image: File} response: {message: string} (Verb) *return response from multer
 // PUT /api/sauces/:id request body: {EITHERSauce as JSON OR { sauce:String, image: File }} response: {message: string}
 // DELETE /api/sauces/:id request body: {}, response  {message: string}
@@ -30,6 +28,34 @@ exports.getOneSauce = async (req, res) => {
 			return res.status(400).json({ message: "Invalid Id format" });
 		}
 		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+exports.addSauce = async (req, res) => {
+	try {
+		if (!req.file) {
+			return res.status(400).json({ message: "Image file is required" });
+		}
+		const sauceData = JSON.parse(req.body.sauce);
+		sauceData.imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
+			req.file.filename
+		}`;
+		sauceData.likes = 0;
+		sauceData.dislikes = 0;
+		sauceData.usersLiked = [];
+		sauceData.usersDisliked = [];
+		const sauce = new Sauces(sauceData);
+		await sauce.save();
+
+		res.status(201).json({
+			message: "Sauce created successfully",
+			sauceId: sauce._id,
+		});
+	} catch (error) {
+		res.status(500).json({
+			message: "Error saving the sauce",
+			error: error.message,
+		});
 	}
 };
 
