@@ -3,6 +3,9 @@
 // DELETE /api/sauces/:id request body: {}, response  {message: string}
 // POST /api/sauces/:id/like request body: { userId: string, like: number}, response {message: string}
 const Sauces = require("../models/sauces");
+require("dotenv").config();
+const { storage } = require("../middleware/upload");
+const multer = require("multer");
 
 exports.getSauces = async (req, res) => {
 	try {
@@ -31,34 +34,60 @@ exports.getOneSauce = async (req, res) => {
 	}
 };
 
+const upload = multer({ storage }).single("image");
+
 exports.addSauce = async (req, res) => {
-	try {
+	upload(req, res, async (error) => {
+		if (error) {
+			return res
+				.status(400)
+				.json({ error: { text: "Multer upload error", error } });
+		}
+
 		if (!req.file) {
 			return res.status(400).json({ message: "Image file is required" });
 		}
-		const sauceData = JSON.parse(req.body.sauce);
-		sauceData.imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
-			req.file.filename
-		}`;
-		sauceData.likes = 0;
-		sauceData.dislikes = 0;
-		sauceData.usersLiked = [];
-		sauceData.usersDisliked = [];
-		const sauce = new Sauces(sauceData);
-		await sauce.save();
 
-		res.status(201).json({
-			message: "Sauce created successfully",
-			sauceId: sauce._id,
-		});
-	} catch (error) {
-		res.status(500).json({
-			message: "Error saving the sauce",
-			error: error.message,
-		});
-	}
+		try {
+			console.log(req.body);
+			if (!req.body.sauce) {
+				return res
+					.status(400)
+					.json({ message: "Sauce data is required" });
+			}
+
+			let sauceData;
+			try {
+				sauceData = JSON.parse(req.body.sauce);
+			} catch (parseError) {
+				return res.status(400).json({
+					error: {
+						text: "Invalid JSON format in sauce data",
+						error: parseError,
+					},
+				});
+			}
+
+			sauceData.imageUrl = `http://${req.hostname}:${process.env.PORT}/api/file/files/${req.file.filename}`;
+			sauceData.likes = 0;
+			sauceData.dislikes = 0;
+			sauceData.usersLiked = [];
+			sauceData.usersDisliked = [];
+			const sauce = new Sauces(sauceData);
+			await sauce.save();
+
+			res.status(201).json({
+				message: "Sauce created successfully",
+				sauceId: sauce._id,
+			});
+		} catch (error) {
+			console.log(error);
+			res.status(500).json({
+				error: { text: "Unable to process the request", error },
+			});
+		}
+	});
 };
-
 exports.deleteSauce = async (req, res) => {
 	try {
 		const id = req.params.id;
@@ -84,14 +113,13 @@ exports.deleteSauce = async (req, res) => {
 exports.likeSauce = async (req, res) => {
 	try {
 		const { id } = req.params;
-		const userId = req.userId;
-		const like = Number(req.params.like);
+		const userId = req.body.userId;
+		const like = Number(req.body.like);
 		const sauce = await Sauces.findById(id);
 
 		if (!sauce) {
 			return res.status(404).json({ message: "Sauce not found" });
 		}
-
 		let message = "Sauce liked successfully";
 
 		if (like === 1) {
@@ -134,7 +162,6 @@ exports.likeSauce = async (req, res) => {
 		} else {
 			return res.status(400).json({ message: "Invalid like value" });
 		}
-
 		await sauce.save();
 		res.json({ message });
 	} catch (error) {

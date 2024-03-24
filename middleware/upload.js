@@ -1,36 +1,41 @@
 const mongoose = require("mongoose");
-const multer = require("multer");
 const { GridFsStorage } = require("multer-gridfs-storage");
 const Grid = require("gridfs-stream");
 
 require("dotenv").config();
 
-function upload() {
-	console.log("upload running");
-	const mongoUrl = process.env.MONGOSTRING;
-	const conn = mongoose.connection;
+const mongoUrl = process.env.MONGOSTRING;
+const conn = mongoose.connection;
 
-	let gfs;
-	conn.once("open", () => {
-		gfs = Grid(conn.db, mongoose.mongo);
-		gfs.collection("uploads");
-	});
+let gfs;
+conn.once("open", () => {
+	gfs = Grid(conn.db, mongoose.mongo);
+	gfs.collection("uploads");
+});
 
-	const storage = new GridFsStorage({
-		url: mongoUrl,
-		file: (req, file) => {
-			return new Promise((resolve, reject) => {
-				const fileInfo = {
-					filename: file.originalname,
-					bucketName: "uploads",
-				};
+const storage = new GridFsStorage({
+	url: mongoUrl,
+	file: (req, file) => {
+		return new Promise((resolve, reject) => {
+			const timestamp = new Date()
+				.toISOString()
+				.replace(/[-T:\.Z]/g, "")
+				.slice(2, 14);
 
-				resolve(fileInfo);
-			});
-		},
-	});
+			const uid = Math.random().toString(36).substring(2, 8);
 
-	return multer({ storage });
-}
+			const extension = file.originalname.split(".").pop();
 
-module.exports = { upload };
+			const newFilename = `${timestamp}-${uid}.${extension}`;
+
+			const fileInfo = {
+				filename: newFilename,
+				bucketName: "uploads",
+			};
+
+			resolve(fileInfo);
+		});
+	},
+});
+
+module.exports = { storage };

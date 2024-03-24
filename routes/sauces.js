@@ -18,7 +18,12 @@ router.get(
 	saucesController.getOneSauce
 );
 
-router.post("/");
+router.post(
+	"/",
+	authenticate.authenticateToken,
+	// upload().single("file"),
+	saucesController.addSauce
+);
 
 router.put("/:id");
 
